@@ -1,1 +1,4 @@
-# algorithms_and_data_structures
+# Annotation
+
+All homework data for the Algs and Data structures course.
+Lecturer A.Krymov
