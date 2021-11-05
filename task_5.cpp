@@ -1,227 +1,143 @@
-// Copyright 2021 Artem Ustsov
+// Copyright 2021 by Artem Ustsov
 
 // Задача №5_3
 /*
-Группа людей называется современниками если был такой момент, когда они могли собраться вместе.
-Для этого в этот момент каждому из них должно было уже исполниться 18 лет, но ещё не исполниться 80 лет.
-Дан список Жизни Великих Людей. Необходимо получить максимальное количество современников.
-В день 18летия человек уже может принимать участие в собраниях, а в день 80летия и в день смерти уже не может.
-Замечание. Человек мог не дожить до 18-летия, либо умереть в день 18-летия. В этих случаях принимать участие в
-собраниях он не мог.
-*/
-
+ * На числовой прямой окрасили N отрезков.
+ * Известны координаты левого и правого концов каждого отрезка (Li и Ri).
+ *Найти длину окрашенной части числовой прямой.
+ */
+#include <functional>
 #include <iostream>
-#include <assert.h>
-#include <vector>
-#include <string>
 
-using namespace std;
+enum position { begin_l = 1, end_l = -1 };
 
-class Event;
-class Person;
-template <typename T> class Heap;
-
-class Event {
-public:
-    Event();
-    Event(int year, int month, int day, int type);
-    bool less(const Event& event);
-    string to_string();
-    void add_years(int years);
-
-    int year;
-    int month;
-    int day;
-    int type;
-    // type:
-    // 0 - birth day
-    // 1 - die day
+struct Point {
+  Point() = default;
+  Point(int coord, position pos) : coord(coord), pos(pos){};
+  int coord;
+  position pos;
 };
 
-Event::Event() {
-}
-
-Event::Event(int year, int month, int day, int type) {
-    this->year = year;
-    this->month = month;
-    this->day = day;
-    this->type = type;
-}
-
-bool Event::less(const Event& event) {
-    return (year < event.year) ||
-           (year == event.year && month < event.month) ||
-           (year == event.year && month == event.month && day < event.day) ||
-           (year == event.year && month == event.month && day == event.day && type > event.type);
-}
-
-string Event::to_string() {
-    string res = ::to_string(year) + " " + ::to_string(month) + " " + ::to_string(day) + " " + ::to_string(type) + "\n";
-    return res;
-}
-
-void Event::add_years(int years) {
-    year += years;
-}
-
-template <typename T>
-class Heap {
+template <typename T> class Array {
 public:
-    Heap(): size(0) {
-    }
+  explicit Array(int size);
+  ~Array();
 
-    Heap(vector<T>& arr) {
-        size = arr.size();
-        buffer = arr;
-
-        for(int i = size/2 - 1; i >= 0; i--)
-            sift_down(i);
-    }
-
-    int get_size() {
-        return size;
-    }
-
-    T top() {
-        assert(size > 0);
-        return buffer[0];
-    }
-
-    T pop_top() {
-        assert(size > 0);
-        T elem = buffer[0];
-        size--;
-        if(size > 0) {
-            swap(buffer[0], buffer[size]);
-            sift_down(0);
-        }
-
-        return elem;
-    }
-
-    void add(T& elem) {
-        buffer.push_back(elem);
-        sift_up(size);
-        size++;
-    }
-
-    void sift_up(int index) {
-        while(index > 0) {
-            int parent = (index - 1) / 2;
-            if(buffer[index].less(buffer[parent]))
-                return;
-            swap(buffer[index], buffer[parent]);
-            index = parent;
-        }
-    }
-
-    void sift_down(int index) {
-        int left = 2 * index + 1;
-        int right = 2 * index + 2;
-        int largest = index;
-        if(left < size && buffer[largest].less(buffer[left]))
-            largest = left;
-        if(right < size && buffer[largest].less(buffer[right]))
-            largest = right;
-        if(largest != index) {
-            swap(buffer[largest], buffer[index]);
-            sift_down(largest);
-        }
-    }
-
-    void draw() {
-        cout<<"--------------";
-        cout<<endl;
-        for(int i=0; i < size; i++)
-            cout<<buffer[i].to_string();
-        cout<<endl;
-    }
-
-    void sort() {
-        int old_size = size;
-        while(size > 1) {
-            swap(buffer[0], buffer[size-1]);
-            --size;
-            sift_down(0);
-        }
-        size = old_size;
-    }
-
-    int calculate_max_online() {
-        int cur = 0, max_online = 0;
-        for(int i = 0; i < size; i++) {
-            if(buffer[i].type == 0) {
-                cur++;
-            }
-            if(buffer[i].type == 1) {
-                cur--;
-            }
-            if(cur > max_online)
-                max_online = cur;
-        }
-
-        return max_online;
-    }
+  void AddElement(T element);
+  int GetSize() const;
+  T &operator[](int index) const;
 
 private:
-    vector <T> buffer;
-    int size;
+  int size;
+  int current_element;
+  T *array;
 };
 
-class Person {
-public:
-    Person(Event& birth, Event& death) {
-        this->birth = birth;
-        this->birth.add_years(18);
-        this->death = death;
-    }
-
-    bool is_mature();
-    Event end_of_meeting();
-
-
-    Event birth;
-    Event death;
-};
-
-bool Person::is_mature() {
-    if(death.less(birth)) return false;
-    return true;
+template <typename T>
+Array<T>::Array(int size) : size(size), current_element(0) {
+  array = new T[size];
 }
 
-Event Person::end_of_meeting() {
-    Event birth_plus_eighty(birth.year+80-18, birth.month, birth.day, 1);
-    if(birth_plus_eighty.less(death))
-        return birth_plus_eighty;
-    return death;
+template <typename T> Array<T>::~Array() { delete[] array; }
+
+template <typename T> void Array<T>::AddElement(T element) {
+  if (current_element < size) {
+    array[current_element++] = element;
+  }
 }
 
-void get_dates(vector <Event>& v) {
-    int n;
-    cin>>n;
-    for(int i = 0; i < n; i++) {
-        int b_day, b_month, b_year, d_day, d_month, d_year;
-        cin>>b_day>>b_month>>b_year>>d_day>>d_month>>d_year;
-        Event birth(b_year, b_month, b_day, 0);
-        Event death(d_year, d_month, d_day, 1);
-        Person person(birth, death);
-        if(person.is_mature()) {
-            v.push_back(person.birth);
-            v.push_back(person.end_of_meeting());
-        }
+template <typename T> int Array<T>::GetSize() const { return size; }
+
+template <typename T> T &Array<T>::operator[](int index) const {
+  return array[index];
+}
+
+template <typename T, typename U>
+void Merge(T &array, T &buf, int from, int mid, int to,
+           std::function<bool(const U &lhs, const U &rhs)> comparator) {
+  int k = from;
+  int i = from;
+  int j = mid + 1;
+
+  while (i <= mid && j <= to) {
+    if (comparator(array[i], array[j])) {
+      buf[k++] = array[i++];
+    } else {
+      buf[k++] = array[j++];
     }
+  }
+
+  while (i < array.GetSize() && i <= mid) {
+    buf[k++] = array[i++];
+  }
+
+  for (i = from; i <= to; i++) {
+    array[i] = buf[i];
+  }
+}
+
+template <typename T, typename U>
+void MergeSort(T &A, T &temp, int low, int high,
+               std::function<bool(const U &lhs, const U &rhs)> comparator) {
+  for (int m = 1; m <= high - low; m *= 2) {
+    for (int i = low; i < high; i += 2 * m) {
+      int from = i;
+      int mid = i + m - 1;
+      int to = std::min(i + 2 * m - 1, high);
+
+      Merge<T, U>(A, temp, from, mid, to, comparator);
+    }
+  }
+}
+
+int CalculateSegmentSize(const Array<Point> &array) {
+  int layer = 0;
+  int result = 0;
+
+  int begin = 0;
+  int end = 0;
+
+  for (int i = 0; i < array.GetSize(); ++i) {
+    auto layer_prev = layer;
+    layer += array[i].pos;
+
+    if (layer_prev == 0 && layer == 1) {
+      begin = array[i].coord;
+    }
+
+    if (layer_prev > 0 && layer == 0) {
+      end = array[i].coord;
+      result += end - begin;
+    }
+  }
+
+  return result;
 }
 
 int main() {
-    vector<Event> v;
-    get_dates(v);
+  int n = 0;
+  int begin = 0;
+  int end = 0;
 
-    cout << v.size() << endl;
+  std::cin >> n;
+  Array<Point> array(n * 2);
+  Array<Point> buf(n * 2);
 
-    Heap<Event> heap(v);
-    heap.sort();
-    int max_online = heap.calculate_max_online();
-    cout<<max_online<<endl;
+  for (int i = 0; i < n; ++i) {
+    std::cin >> begin >> end;
 
-    return 0;
+    array.AddElement(Point(begin, begin_l));
+    buf.AddElement(Point(begin, begin_l));
+
+    array.AddElement(Point(end, end_l));
+    buf.AddElement(Point(end, end_l));
+  }
+
+  MergeSort<Array<Point>, Point>(
+      array, buf, 0, array.GetSize() - 1,
+      [](const Point &lhs, const Point &rhs) { return lhs.coord < rhs.coord; });
+
+  std::cout << CalculateSegmentSize(array);
+
+  return 0;
 }

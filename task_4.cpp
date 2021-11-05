@@ -1,153 +1,193 @@
+// Copyright 2021 by Artem Ustsov
+
 // Задача №4_3
-
 /*
-* В операционной системе Technux есть планировщик процессов. 
+* В операционной системе Technux есть планировщик процессов.
 * Каждый процесс характеризуется:
-* приоритетом P
-* временем, которое он уже отработал t
-* временем, которое необходимо для завершения работы процесса T.
+* приоритетом P (process_priority)
+* временем, которое он уже отработал t (process_current_time)
+* временем, которое необходимо для завершения работы процесса T
+(process_time_to_complete).
 
-* Планировщик процессов выбирает процесс с минимальным значением P * (t + 1), выполняет его время P и кладет обратно в очередь процессов.
-* Если выполняется условие t >= T, то процесс считается завершенным и удаляется из очереди.
+* Планировщик процессов выбирает процесс с минимальным значением P * (t + 1),
+выполняет его время P и кладет обратно в очередь процессов.
+* Если выполняется условие t >= T, то процесс считается завершенным и удаляется
+из очереди.
 * Требуется посчитать кол-во переключений процессора.
-* Формат входных данных:  Сначала вводится кол-во процессов. После этого процессы в формате P T
+* Формат входных данных:  Сначала вводится кол-во процессов. После этого
+процессы в формате P T
 * Формат выходных данных: Кол-во переключений процессора.
+*
+* Требования:
+* В качестве очереди с приоритетом нужно использовать кучу.
+* Куча должна быть реализована в виде шаблонного класса.
+* Решение должно поддерживать передачу функции сравнения снаружи.
+* Куча должна быть динамической.
 */
 
 #include <iostream>
+#include <vector>
 
-// Подсчет минимально необходимого количества тупиков
-int CountDeadlocks(int n);
-
-class Heap
-{
+class Process {
 public:
-    Heap(int cap = 10);
-    ~Heap();
-    
-    int ExtractMin();
-    void Insert(int element);
-    int PeekAtNext() { return IsEmpty() ? 0 : buffer[0]; }
-    
-    bool IsEmpty() { return size == 0; }
-    int GetSize() { return size; }
-    
-private:
-        
-    void SiftDown(int index);
-    void SiftUp(int index);
-        
-    void Reallocate();
-    
-    int* buffer;
-    int size;
-    int capacity;
-    const int capacityFactor = 2;
+  int priority, time_to_complete, current_time;
+
+  Process(int priority, int time_to_complete)
+      : priority(priority), time_to_complete(time_to_complete),
+        current_time(0){};
 };
 
-Heap::Heap(int cap) 
-: capacity(cap), size(0) 
-{
-    buffer = new int[capacity];
+class ProcessComparator {
+public:
+  bool operator()(const Process &process_1, const Process &process_2) {
+    int time_process_1 = process_1.priority * (process_1.current_time + 1);
+    int time_process_2 = process_2.priority * (process_2.current_time + 1);
+    return time_process_1 < time_process_2;
+  }
+};
+
+template <typename T, typename Comparator> class Heap {
+public:
+  explicit Heap(const std::vector<T> _values_vector, Comparator _cmp);
+  T extractMin();
+  T getMin();
+
+  void insert(T element);
+  void heapSort(Comparator cmp);
+  void hepify();
+  bool isEmpty();
+  int getSize();
+
+private:
+  void siftDown(int n, int index, Comparator cmp);
+  void siftUp(int index);
+  std::vector<T> values_vector;
+  Comparator cmp;
+};
+
+template <typename T, typename Comparator>
+Heap<T, Comparator>::Heap(const std::vector<T> _values_vector,
+                          Comparator _cmp) {
+  values_vector = _values_vector;
+  cmp = _cmp;
+  hepify();
 }
 
-Heap::~Heap()
-{
-    delete[] buffer;
+template <typename T, typename Comparator>
+void Heap<T, Comparator>::insert(T element) {
+  values_vector.push_back(element);
+  siftUp(values_vector.size() - 1);
+  return;
 }
 
-void Heap::SiftDown(int index)
-{
-    int leftSon = 2 * index + 1;
-    int rightSon = 2 * index + 2;
-    int smallestSon = index;
-    
-    if (leftSon < size && buffer[leftSon] < buffer[index])
-        smallestSon = leftSon;
-    
-    if (rightSon < size && buffer[rightSon] < buffer[smallestSon])
-        smallestSon = rightSon;
-    
-    if (smallestSon != index) {
-        std::swap(buffer[index], buffer[smallestSon]);
-        SiftDown(smallestSon);
-    }    
+template <typename T, typename Comparator> T Heap<T, Comparator>::extractMin() {
+  T result = values_vector.front();
+  values_vector.front() = values_vector.back();
+  values_vector.pop_back();
+  if (!values_vector.empty()) {
+    siftDown(values_vector.size(), 0, cmp);
+  }
+  return result;
 }
 
-void Heap::SiftUp(int index)
-{
-    while (index > 0) {
-        int parent = (index - 1) / 2;
-        if (buffer[index] >= buffer[parent]) { return; }
-        std::swap(buffer[index], buffer[parent]);
-        index = parent;
+template <typename T, typename Comparator> T Heap<T, Comparator>::getMin() {
+  return values_vector.front();
+}
+
+// optional
+template <typename T, typename Comparator>
+void Heap<T, Comparator>::heapSort(Comparator cmp) {
+  int heapSize = values_vector.size();
+  hepify();
+  while (heapSize > 1) {
+    std::swap(values_vector.front(), values_vector[heapSize - 1]);
+    heapSize--;
+    siftDown(heapSize, 0, cmp);
+  }
+  return;
+}
+
+template <typename T, typename Comparator> void Heap<T, Comparator>::hepify() {
+  for (int i = values_vector.size() / 2; i >= 0; --i) {
+    siftDown(values_vector.size(), i, cmp);
+  }
+  return;
+}
+
+template <typename T, typename Comparator> bool Heap<T, Comparator>::isEmpty() {
+  return values_vector.size() == 0;
+}
+
+template <typename T, typename Comparator>
+void Heap<T, Comparator>::siftDown(int n, int index, Comparator cmp) {
+  int left = index * 2 + 1;
+  int right = index * 2 + 2;
+  int large = index;
+
+  if (left < n && cmp(values_vector[left], values_vector[index])) {
+    large = left;
+  }
+  if (right < n && cmp(values_vector[right], values_vector[large])) {
+    large = right;
+  }
+  if (large != index) {
+    std::swap(values_vector[index], values_vector[large]);
+    siftDown(n, large, cmp);
+  }
+  return;
+}
+
+template <typename T, typename Comparator>
+void Heap<T, Comparator>::siftUp(int index) {
+  while (index > 0) {
+    int parent = (index - 1) / 2;
+    if (!cmp(values_vector[index], values_vector[parent])) {
+      return;
     }
+    std::swap(values_vector[index], values_vector[parent]);
+    index = parent;
+  }
+  return;
 }
 
-void Heap::Reallocate()
-{
-    int new_capacity = capacity * capacityFactor;
-    int* new_buffer = new int[new_capacity];
-    
-    for (int i = 0; i < capacity; ++i) {
-        new_buffer[i] = buffer[i];
+int countProcessorSwitches(Heap<Process, ProcessComparator> heap) {
+  int switches = 0;
+  while (!heap.isEmpty()) {
+    //Процесс с минимальным показателем
+    Process runningProcess = heap.extractMin();
+    //Если на данном этапе процесс не выполняется, то
+    if (runningProcess.current_time + runningProcess.priority <
+        runningProcess.time_to_complete) {
+      //выполняем его
+      runningProcess.current_time += runningProcess.priority;
+      //а затем возвраащем в кучу
+      heap.insert(runningProcess);
     }
-    delete[] buffer;
-    buffer = new_buffer;
-    capacity = new_capacity;
+    // увеличиваем количество переключений
+    switches++;
+  }
+  return switches;
 }
 
-void Heap::Insert(int element)
-{
-    buffer[size] = element;
-    SiftUp(size++);
-    if (size == capacity) {
-        Reallocate();
-    }  
-}
-
-int Heap::ExtractMin()
-{
-    if (IsEmpty())
-        return 0;
-    int result = buffer[0];
-    buffer[0] = buffer[size-1];
-    size--;
-    SiftDown(0);
-    return result;
-}
-
-// Подсчет минимально необходимого количества тупиков
-int CountDeadlocks(int n)
-{
-    int minDeadlocks = 0;
-    int arrival = 0, departure = 0;
-    Heap heap;
-    
-    for (int i = 0; i < n; ++i) {
-        // Ввод времени прибытия / отбытия
-        std::cin >> arrival >> departure;
-        if (!heap.IsEmpty()) {
-            // Если некоторые электрички к моменту прибытия уехали - извлекаем
-            while (arrival > heap.PeekAtNext()) {
-                heap.ExtractMin();
-            }
-        }
-        // Добавляем время отправления прибывшей
-        heap.Insert(departure);
-
-        // Смотрим, сколько путей занято
-        if (heap.GetSize() > minDeadlocks) {
-            minDeadlocks = heap.GetSize();
-        }
-    }
-    return minDeadlocks;
+template <typename T>
+void valuesVectorFill(int processes_num, std::vector<T> &values_vector) {
+  for (int i = 0; i < processes_num; ++i) {
+    int priority = 0;
+    int time_to_complete = 0;
+    std::cin >> priority >> time_to_complete;
+    values_vector.emplace_back(priority, time_to_complete);
+  }
+  return;
 }
 
 int main() {
-    int n = 0;
-    std::cin >> n;
-    int minDeadlocks = CountDeadlocks(n);
-    std::cout << minDeadlocks;
-    return 0;
+  int processes_num;
+  std::cin >> processes_num;
+
+  std::vector<Process> values_vector;
+  valuesVectorFill<Process>(processes_num, values_vector);
+
+  Heap<Process, ProcessComparator> heap(values_vector, ProcessComparator());
+  std::cout << countProcessorSwitches(heap) << std::endl;
+  return 0;
 }

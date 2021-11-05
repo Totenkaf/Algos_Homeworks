@@ -1,74 +1,72 @@
+// Copyright 2021 by Artem Ustsov
 // Задача №7_3. Binary MSD для long long.
-// Дан массив неотрицательных целых 64-разрядных чисел. Количество чисел не больше 106. 
-// Отсортировать массив методом MSD по битам (бинарный QuickSort).
-
+// Дан массив неотрицательных целых 64-разрядных чисел.
+// Количество чисел не
+// больше 106. Отсортировать массив методом MSD по битам (бинарный QuickSort).
 
 #include <iostream>
 
-// получаем n-тый байт числа
-int getByte(long long number, size_t n) {
-    return number >> (8 * n) & 255;
+#define BITSWORD 63
+typedef unsigned long long int ull_i;
+
+// Проверка наличия единицы в раряде под номером индекс
+inline bool digit(ull_i num, int index) { return num & ((ull_i)1 << index); }
+
+// Перегрузка std::swap для long long int
+void swap(ull_i *a, ull_i *b) {
+  ull_i temp = *a;
+  *a = *b;
+  *b = temp;
+  return;
 }
 
-// сортировка подсчетом массива чисел по n-тому байту
-void countingSort(long long *data, size_t size, const size_t n) {
-    size_t counters[256];
-
-    for(size_t i = 0; i < 256; ++i) {
-        counters[i] = 0;
+//Бинарная сортировка по старшему биту
+void quicksortB(ull_i *a, int first, int last, int bitsword) {
+  int i = first;
+  int j = last;
+  if (last <= first || bitsword < 0) {
+    return;
+  }
+  while (j != i) {
+    while (!digit(a[i], bitsword) && (i < j)) {
+      ++i;
     }
-
-    // считаем количество чисел с разными значениями байта (от 0 до 255)
-    for(size_t i = 0; i < size; ++i) {
-        counters[getByte(data[i], n)]++;
+    while (digit(a[j], bitsword) && (j > i)) {
+      --j;
     }
+    swap(&(a[i]), &(a[j]));
+  }
 
-    // расчитываем первые индексы для вставки чисел
-    for(size_t i = 1; i < 256; ++i) {
-        counters[i] += counters[i - 1];
-        // std::cout << counters[i] << std::endl;
-    }
+  if (!digit(a[last], bitsword)) {
+    ++j;
+  }
 
-    // массив для результатов
-    long long *tmp = new long long[size];
-
-    // создаем отсортированный массив результатов
-    for(size_t i = size - 1; ; --i) {
-        tmp[--counters[getByte(data[i], n)]] = data[i];
-        if(i == 0)
-            break;
-    }
-
-    // переписываем отсортированный массив в исходный
-    for(size_t i = 0; i < size; i++) {
-        data[i] = tmp[i];
-    }
-    delete[] tmp;
+  quicksortB(a, first, j - 1, bitsword - 1);
+  quicksortB(a, j, last, bitsword - 1);
 }
 
-// сортировка LSD
-void LSDSort(long long *data, size_t size) {
-    size_t totalBytes = sizeof(long long);
+void fillNumVector(const int size, ull_i *num_vector) {
+  for (auto i = 0; i < size; ++i) {
+    std::cin >> num_vector[i];
+  }
+  return;
+}
 
-    for(size_t byte = 0; byte < totalBytes; ++byte) {
-        countingSort(data, size, byte);
-    }
+void prinNumVector(const int size, ull_i *num_vector) {
+  for (int i = 0; i < size; ++i) {
+    std::cout << num_vector[i] << " ";
+  }
+  std::cout << std::endl;
+  return;
 }
 
 int main() {
-    size_t n = 0;
-    std::cin >> n;
+  int size = 0;
+  std::cin >> size;
+  ull_i *num_vector = new ull_i[size];
 
-    long long *data = new long long[n];
-    for(size_t i = 0; i < n; ++i) {
-        std::cin >> data[i];
-    }
-
-    LSDSort(data, n);
-    
-    for(size_t i = 0; i < n; ++i) {
-        std::cout << data[i] << " ";
-    }
-    delete[] data;
-    return 0;
+  fillNumVector(size, num_vector);
+  quicksortB(num_vector, 0, size - 1, BITSWORD);
+  prinNumVector(size, num_vector);
+  delete[] num_vector;
 }

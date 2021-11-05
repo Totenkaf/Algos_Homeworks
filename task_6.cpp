@@ -1,113 +1,120 @@
+// Copyright 2021 by Artem Ustsov
 // Задача №6_4
-// Реализуйте стратегию выбора опорного элемента “случайный элемент”. 
-// Функцию Partition реализуйте методом прохода двумя итераторами от конца массива к началу (в одном направлении).
+/*
+ * Реализуйте стратегию выбора опорного элемента “случайный элемент”.
+ * Функцию Partition реализуйте методом прохода двумя итераторами от конца
+ * массива к началу (в одном направлении).
+ */
 
-// Дано множество целых чисел из [0..10^9] размера n. 
-// Используя алгоритм поиска k-ой порядковой статистики, требуется найти следующие параметры множества:
-// 1) 10% перцентиль
-// 2) медиана
-// 3) 90% перцентиль
+/*
+ * Дано множество целых чисел из [0..10^9] размера n.
+ * Используя алгоритм поиска k-ой порядковой статистики, требуется найти
+ * следующие параметры множества:
+ * 1) 10% перцентиль
+ * 2) медиана
+ * 3) 90% перцентиль
+ */
 
-// Требования: к дополнительной памяти: O(n). Среднее время работы: O(n). 
-// Должна быть отдельно выделенная функция partition. Рекурсия запрещена. Решение должно поддерживать передачу функции сравнения снаружи.
+/*
+ * Требования: к дополнительной памяти: O(n). Среднее время работы: O(n).
+ * Должна быть отдельно выделенная функция partition. Рекурсия запрещена.
+ * Решение должно поддерживать передачу функции сравнения снаружи.
+ */
 
-// Описание для случая прохода от начала массива к концу:
-// * Выбирается опорный элемент. Опорный элемент меняется с последним элементом массива.
-// * Во время работы Partition в начале массива содержатся элементы, не бОльшие опорного. Затем располагаются элементы, строго бОльшие опорного. 
-// * В конце массива лежат нерассмотренные элементы. Последним элементом лежит опорный.
-// * Итератор (индекс) i указывает на начало группы элементов, строго бОльших опорного.
-// * Итератор j больше i, итератор j указывает на первый нерассмотренный элемент.
-// * Шаг алгоритма. Рассматривается элемент, на который указывает j. Если он больше опорного, то сдвигаем j.
-// * Если он не больше опорного, то меняем a[i] и a[j] местами, сдвигаем i и сдвигаем j.
-// * В конце работы алгоритма меняем опорный и элемент, на который указывает итератор i.
+/*
+* Описание для случая прохода от начала массива к концу:
+* 1) Выбирается опорный элемент. Опорный элемент меняется с последним элементом
+массива.
+* 2) Во время работы Partition в начале массива содержатся элементы, не бОльшие
+* опорного. Затем располагаются элементы, строго бОльшие опорного.
+* 3) В конце массива лежат нерассмотренные элементы. Последним элементом лежит
+опорный.
+* 4) Итератор (индекс) i указывает на начало группы элементов, строго бОльших
+опорного.
+* 5) Итератор j больше i, итератор j указывает на первый нерассмотренный
+элемент.
+* 6) Шаг алгоритма. Рассматривается элемент, на который указывает j. Если он
+больше опорного, то сдвигаем j.
+* 7) Если он не больше опорного, то меняем a[i] и a[j] местами, сдвигаем i и
+сдвигаем j.
+* 8) В конце работы алгоритма меняем опорный и элемент, на который указывает
+итератор i.
+*/
 
+#include <cassert>
 #include <iostream>
+#include <sstream>
+#include <time.h>
 
-// выбор опорного элемента
-// медиана трёх -Ю переделать на случайный элемент
-template<class T>
-size_t selectPivot(T *data, size_t l, size_t r) {
-    size_t half = (l + r - 1) / 2; // середина списка
-
-    // выбор среднего из трех элементов
-    if(data[l] < data[half]) {
-        if(data[r] < data[l]) {
-            return l;
-        }
-        else if(data[r] < data[half]) {
-            return r;
-        }
-        return half;
-    }
-    else
-    {
-        if(data[r] < data[half]) {
-            return half;
-        }
-        else if(data[r] < data[l]) {
-            return r;
-        }
-        return l;
-    }
+int randPivot(int left, int right) {
+  srand(time(NULL));
+  return left == right ? left : std::rand() % (right - left) + left;
 }
 
-// partition
-template<class T>
-size_t partition(T *data, size_t l, size_t r) {
-    size_t pivotPos = selectPivot(data, l, r);
+template <typename Comparator>
+int partition(int *sequence, int begin, int end,
+              Comparator cmp = Comparator()) {
+  int i = end;
+  int pivot = randPivot(begin, end);
+  std::swap(sequence[begin], sequence[pivot]);
+  pivot = begin;
 
-    if(pivotPos != r - 1) { // меняем местами опорный элемент с последним
-        std::swap(data[r - 1], data[pivotPos]);
+  for (int j = end; j > begin; --j) {
+    if (cmp(sequence[j], sequence[pivot])) {
+      std::swap(sequence[j], sequence[i]);
+      --i;
     }
-
-    size_t i = l, j = l;
-    T pivot = data[r - 1];
-    while(j < r - 1) {
-        if(data[j] <= pivot) {
-            // текущий элемент не больше опорного
-            // меняем его с первым из больших
-            std::swap(data[i++], data[j]);
-        }
-        j++;
-    }
-    if(i != r - 1) { // ставим опорный элемент на место
-        std::swap(data[i], data[r - 1]);
-    }
-    return i;
+  }
+  std::swap(sequence[i], sequence[pivot]);
+  return i;
 }
 
-// поиск к-ой порядковой статистики
-template<class T>
-T findKStatistics(T *data, size_t l, size_t r, size_t k) {
-    size_t lastPivotPos = 0,
-           left = l,
-           right = r;
-    while(left < right) {
-        if((lastPivotPos = partition(data, left, right)) == k) { // нашли
-            return data[lastPivotPos];
-        }
-        else if(lastPivotPos > k) {
-            // опорный элемент оказался правее искомого
-            right = lastPivotPos;
-        }
-        else {
-            // опорный элемент не дошел до искомого
-            left = lastPivotPos + 1;
-        }
+template <typename Comparator = std::greater_equal<int>>
+int findStatistic(int *sequence, int begin, int end, int k,
+                  Comparator cmp = Comparator()) {
+  int pivot = partition(sequence, begin, end, cmp);
+
+  while (pivot != k) {
+    if (pivot > k) {
+      end = pivot - 1;
+    } else {
+      begin = pivot + 1;
     }
-    return data[lastPivotPos];
+    pivot = partition(sequence, begin, end, cmp);
+  }
+  return sequence[pivot];
+}
+
+template <typename T> void fillSequence(T &sequence, size_t seq_size) {
+  for (size_t i = 0; i < seq_size; ++i) {
+    std::cin >> sequence[i];
+  }
+  return;
+}
+
+template <typename T>
+void findSequenceStatistics(T &sequence, size_t seq_size) {
+  int percentile_10th = seq_size / 10;
+  int percentile_90th = 9 * seq_size / 10;
+  int percentile_50th = seq_size / 2;
+
+  std::cout << findStatistic(sequence, 0, seq_size - 1, percentile_10th)
+            << std::endl;
+  std::cout << findStatistic(sequence, 0, seq_size - 1, percentile_50th)
+            << std::endl;
+  std::cout << findStatistic(sequence, 0, seq_size - 1, percentile_90th)
+            << std::endl;
+  return;
 }
 
 int main() {
-    size_t n = 0, // количество элементов в массиве
-           k = 0; // номер для поиска порядковой статистики
+  int seq_size = 0;
+  std::cin >> seq_size;
 
-    std::cin >> n >> k;
+  auto sequence = new int[seq_size];
+  fillSequence(sequence, seq_size);
+  findSequenceStatistics(sequence, seq_size);
 
-    int *numbers = new int[n];
-    for(size_t i = 0; i < (size_t) n; ++i) {
-        std::cin >> numbers[i];
-    }
-    std::cout << findKStatistics(numbers, 0, (size_t) n, k);
-    delete[] numbers;
+  delete[] sequence;
+  return 0;
 }
