@@ -1,4 +1,4 @@
-// Copyright 2021 Artem Ustsov
+// Copyright 2022 Artem Ustsov
 
 /*
 * Задача № 2_2
@@ -28,9 +28,7 @@ void fillSeq(int *seq, int seq_size) {
 
 int binarySearch(const int *seq, size_t begin, size_t end) {
   while (true) {
-
     int mid = begin + (end - begin) / 2;
-
     if (seq[mid] > seq[mid + 1] && seq[mid] > seq[mid - 1]) {
       return mid;
     }
@@ -69,12 +67,13 @@ int find_index_of_sequence_extremum(const int *seq, size_t begin, size_t end) {
     }
 
   // Строго возрастающая
-  if (seq[0] > seq[1])
+  if (seq[0] > seq[1]) {
     return 0;
-
+  }
   // Строго убывающая
-  if (seq[end - 1] < seq[end])
+  if (seq[end - 1] < seq[end]) {
     return end;
+  }
   return exponentialSearch(seq, begin, end);
 }
 

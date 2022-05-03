@@ -1,4 +1,4 @@
-// Copyright 2021 by Artem Ustsov
+// Copyright 2022 by Artem Ustsov
 // Задача №6_4
 /*
  * Реализуйте стратегию выбора опорного элемента “случайный элемент”.
@@ -41,12 +41,11 @@
 итератор i.
 */
 
-#include <cassert>
 #include <iostream>
-#include <sstream>
+#include <iostream>
 #include <time.h>
 
-int randPivot(int left, int right) {
+int random_pivot(int left, int right) {
   srand(time(NULL));
   return left == right ? left : std::rand() % (right - left) + left;
 }
@@ -55,7 +54,7 @@ template <typename Comparator>
 int partition(int *sequence, int begin, int end,
               Comparator cmp = Comparator()) {
   int i = end;
-  int pivot = randPivot(begin, end);
+  int pivot = random_pivot(begin, end);
   std::swap(sequence[begin], sequence[pivot]);
   pivot = begin;
 
@@ -70,7 +69,7 @@ int partition(int *sequence, int begin, int end,
 }
 
 template <typename Comparator = std::greater_equal<int>>
-int findStatistic(int *sequence, int begin, int end, int k,
+int find_statistic(int *sequence, int begin, int end, int k,
                   Comparator cmp = Comparator()) {
   int pivot = partition(sequence, begin, end, cmp);
 
@@ -85,7 +84,8 @@ int findStatistic(int *sequence, int begin, int end, int k,
   return sequence[pivot];
 }
 
-template <typename T> void fillSequence(T &sequence, size_t seq_size) {
+template <typename T> 
+void fill_sequence(T &sequence, size_t seq_size) {
   for (size_t i = 0; i < seq_size; ++i) {
     std::cin >> sequence[i];
   }
@@ -93,16 +93,16 @@ template <typename T> void fillSequence(T &sequence, size_t seq_size) {
 }
 
 template <typename T>
-void findSequenceStatistics(T &sequence, size_t seq_size) {
+void find_sequence_statistics(T &sequence, size_t seq_size) {
   int percentile_10th = seq_size / 10;
   int percentile_90th = 9 * seq_size / 10;
   int percentile_50th = seq_size / 2;
 
-  std::cout << findStatistic(sequence, 0, seq_size - 1, percentile_10th)
+  std::cout << find_statistic(sequence, 0, seq_size - 1, percentile_10th)
             << std::endl;
-  std::cout << findStatistic(sequence, 0, seq_size - 1, percentile_50th)
+  std::cout << find_statistic(sequence, 0, seq_size - 1, percentile_50th)
             << std::endl;
-  std::cout << findStatistic(sequence, 0, seq_size - 1, percentile_90th)
+  std::cout << find_statistic(sequence, 0, seq_size - 1, percentile_90th)
             << std::endl;
   return;
 }
@@ -111,9 +111,9 @@ int main() {
   int seq_size = 0;
   std::cin >> seq_size;
 
-  auto sequence = new int[seq_size];
-  fillSequence(sequence, seq_size);
-  findSequenceStatistics(sequence, seq_size);
+  int* sequence = new int[seq_size];
+  fill_sequence(sequence, seq_size);
+  find_sequence_statistics(sequence, seq_size);
 
   delete[] sequence;
   return 0;
