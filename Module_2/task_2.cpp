@@ -53,7 +53,6 @@ TBinaryTree<T, Comparator>::~TBinaryTree() {
     delete_node(root);
 }
 
-/* неправильная логика с перемещением из одного стэка в другой, течет память на этом*/
 template <typename T, typename Comparator> /*POST ORDER TRAVERSAL*/
 void TBinaryTree<T, Comparator>::delete_node(TreeNode* node) {
     if(node == nullptr) {
@@ -67,7 +66,7 @@ void TBinaryTree<T, Comparator>::delete_node(TreeNode* node) {
         delete_stack_2.push(delete_stack_1.top());
         delete_stack_1.pop();
         if(delete_stack_2.top() == nullptr) {
-            break;
+            continue;
         }
         delete_stack_1.push(delete_stack_2.top()->left_child);
         delete_stack_1.push(delete_stack_2.top()->right_child);
