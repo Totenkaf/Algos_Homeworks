@@ -2,9 +2,8 @@
 
 #include "MatrixGraph.h"
 
-MatrixGraph::MatrixGraph(int size)
-: adjacency_matrix(size) 
-{
+MatrixGraph::MatrixGraph(size_t size)
+: adjacency_matrix(size) {
     for (size_t i = 0; i < adjacency_matrix.size(); ++i) {
         adjacency_matrix[i].resize(size);
         std::fill(adjacency_matrix[i].begin(), adjacency_matrix[i].end(), 0);
@@ -33,22 +32,22 @@ size_t MatrixGraph::vertices_count() const {
     return adjacency_matrix.size();
 }
 
-std::vector<int> MatrixGraph::get_next_vertices(int vertex) const {
-    assert(vertex < (int)adjacency_matrix.size());
-    std::vector<int> neighbors;
+std::vector<size_t> MatrixGraph::get_next_vertices(size_t vertex) const {
+    assert(vertex < adjacency_matrix.size());
+    std::vector<size_t> neighbors;
     for (size_t to = 0; to < adjacency_matrix.size(); ++to) {
         if (adjacency_matrix[vertex][to] == 1)
-            neighbors.push_back(int(to));
+            neighbors.push_back(to);
     }
     return neighbors;
 }
 
-std::vector<int> MatrixGraph::get_prev_vertices(int vertex) const {
-    assert(vertex < (int)adjacency_matrix.size());
-    std::vector<int> result;
+std::vector<size_t> MatrixGraph::get_prev_vertices(size_t vertex) const {
+    assert(vertex < adjacency_matrix.size());
+    std::vector<size_t> result;
     for (size_t from = 0; from < adjacency_matrix.size(); ++from) {
         if (adjacency_matrix[from][vertex] == 1)
-            result.push_back((int)from);
+            result.push_back(from);
     }
     return result;
 }

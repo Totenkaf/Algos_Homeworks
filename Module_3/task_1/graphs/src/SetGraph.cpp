@@ -2,7 +2,7 @@
 
 #include "SetGraph.h"
 
-SetGraph::SetGraph(int size): 
+SetGraph::SetGraph(size_t size): 
 vector_of_sets(size) 
 {}
 
@@ -10,7 +10,7 @@ SetGraph::SetGraph(const IGraph& graph):
 vector_of_sets(graph.vertices_count()) {
     for (size_t from = 0; from < vector_of_sets.size(); ++from) {
         for (const auto& to : graph.get_next_vertices(from)) {
-            vector_of_sets[from].insert((int)to);
+            vector_of_sets[from].insert(to);
         }
     }
 }
@@ -25,21 +25,21 @@ size_t SetGraph::vertices_count() const {
     return vector_of_sets.size();
 }
 
-std::vector<int> SetGraph::get_next_vertices(int vertex) const {
-    assert(vertex < (int)vector_of_sets.size());
-    std::vector<int> neighbors;
+std::vector<size_t> SetGraph::get_next_vertices(size_t vertex) const {
+    assert(vertex < vector_of_sets.size());
+    std::vector<size_t> neighbors;
     for (const auto& to : vector_of_sets[vertex]) {
-        neighbors.push_back((int)to);
+        neighbors.push_back(to);
     }
     return neighbors;
 }
 
-std::vector<int> SetGraph::get_prev_vertices(int vertex) const {
-    assert(vertex < (int)vector_of_sets.size());
-    std::vector<int> result;
+std::vector<size_t> SetGraph::get_prev_vertices(size_t vertex) const {
+    assert(vertex < vector_of_sets.size());
+    std::vector<size_t> result;
     for (size_t from = 0; from < vector_of_sets.size(); ++from) {
         if (vector_of_sets[from].find(vertex) != vector_of_sets[from].end()) {
-            result.push_back((int)from);
+            result.push_back(from);
             break;
         }
     }

@@ -2,7 +2,7 @@
 
 #include "ListGraph.h"
 
-ListGraph::ListGraph(int size)
+ListGraph::ListGraph(size_t size)
 : adjacency_lists(size) 
 {}
 
@@ -24,14 +24,14 @@ size_t ListGraph::vertices_count() const {
     return adjacency_lists.size();
 }
 
-std::vector<int> ListGraph::get_next_vertices(int vertex) const {
-    assert(vertex < (int)adjacency_lists.size()); // скастить по с++ стилю
+std::vector<size_t> ListGraph::get_next_vertices(size_t vertex) const {
+    assert(vertex < adjacency_lists.size());
     return adjacency_lists[vertex];
 }
 
-std::vector<int> ListGraph::get_prev_vertices(int vertex) const {
-    assert(vertex < (int)adjacency_lists.size()); // скастить по с++ стилю
-    std::vector<int> result;
+std::vector<size_t> ListGraph::get_prev_vertices(size_t vertex) const {
+    assert(vertex < adjacency_lists.size());
+    std::vector<size_t> result;
     for (size_t from = 0; from < adjacency_lists.size(); ++from) {
         for (size_t i = 0; i < adjacency_lists[from].size(); ++i) {
             if (adjacency_lists[from][i] == vertex) {

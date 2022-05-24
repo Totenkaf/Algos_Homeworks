@@ -2,14 +2,14 @@
 
 #include "IGraph.h"
 
-void utils::BFS_traverse(const IGraph& graph, int vertex, std::vector<bool>& visited, 
-                  const std::function<void(int)> &func) {
-    std::queue<int> bfs_queue;
+void utils::BFS_traverse(const IGraph& graph, size_t vertex, std::vector<bool>& visited, 
+                  const std::function<void(size_t)> &func) {
+    std::queue<size_t> bfs_queue;
     bfs_queue.push(vertex);
     visited[vertex] = true;
 
     while (!bfs_queue.empty()) {
-        int current = bfs_queue.front();
+        size_t current = bfs_queue.front();
         bfs_queue.pop();
         func(current);
         auto neighbors = graph.get_next_vertices(current);
@@ -23,7 +23,7 @@ void utils::BFS_traverse(const IGraph& graph, int vertex, std::vector<bool>& vis
     return;
 }
 
-void utils::main_BFS(const IGraph& graph, const std::function<void(int)> &func) {
+void utils::main_BFS(const IGraph& graph, const std::function<void(size_t)> &func) {
     std::vector<bool> visited(graph.vertices_count(), false);
     for(size_t i = 0; i < graph.vertices_count(); ++i) {
         if(!visited[i]) {
@@ -33,12 +33,11 @@ void utils::main_BFS(const IGraph& graph, const std::function<void(int)> &func) 
     return;
 }
 
-void utils::DFS_traverse(const IGraph& graph, int vertex, std::vector<bool> &visited, 
-                  const std::function<void(int)> &func) {
+void utils::DFS_traverse(const IGraph& graph, size_t vertex, std::vector<bool> &visited, 
+                  const std::function<void(size_t)> &func) {
 
     visited[vertex] = true;
     func(vertex);
-
     for (const auto& neighbor : graph.get_next_vertices(vertex)) {
         if(!visited[neighbor]) {
             DFS_traverse(graph, neighbor, visited, func);
@@ -49,7 +48,7 @@ void utils::DFS_traverse(const IGraph& graph, int vertex, std::vector<bool> &vis
 }
 
 
-void utils::main_DFS(const IGraph& graph, const std::function<void(int)>& func) {
+void utils::main_DFS(const IGraph& graph, const std::function<void(size_t)>& func) {
     std::vector<bool> visited(graph.vertices_count(), false);
     for(size_t i = 0; i < graph.vertices_count(); ++i) {
         if(!visited[i]) {
