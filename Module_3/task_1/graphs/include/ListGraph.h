@@ -8,8 +8,7 @@ class ListGraph : public IGraph {
 public:
     explicit ListGraph(size_t size);
     explicit ListGraph(const IGraph& graph);
-    ~ListGraph() 
-    {}
+    ~ListGraph() = default;
     void add_edge(size_t from, size_t to) override;
     size_t vertices_count() const override;
 
